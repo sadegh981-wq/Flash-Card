@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+<title>فلش‌کارت | مرور لغات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --ink:#202436;
+    --ink-soft:#4B5066;
+    --paper:#ECF0F6;
+    --paper-2:#E2E7F0;
+    --card-bg:#FFFFFF;
+    --card-border:#D8DEE9;
+    --accent:#5B4B8A;
+    --accent-dark:#453869;
+    --accent-2:#DDA448;
+    --good:#2F8F5B;
+    --good-bg:#E4F4EA;
+    --bad:#C1483D;
+    --bad-bg:#FBE7E4;
+    --muted:#8A90A6;
+    --folder:#3A6EA5;
+    --folder-bg:#E4ECF6;
+    --radius:18px;
+    --shadow: 0 10px 30px -12px rgba(32,36,54,0.25);
+    --shadow-sm: 0 4px 14px -6px rgba(32,36,54,0.2);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Vazirmatn','Inter',Tahoma,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 90% -10%, #F4E9CF33, transparent),
+      radial-gradient(900px 500px at -10% 110%, #cfd8f433, transparent),
+      var(--paper);
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .en{ font-family:'Inter',Tahoma,sans-serif; direction:ltr; unicode-bidi:isolate; }
+
+  #app{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    padding-bottom:86px;
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:20;
+    background:linear-gradient(180deg, var(--paper) 70%, transparent);
+    padding:18px 18px 10px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .topbar .backbtn, .topbar .editbtn{
+    width:38px;height:38px;border-radius:12px;border:none;
+    background:var(--card-bg); box-shadow:var(--shadow-sm);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer; flex-shrink:0; color:var(--ink);
+  }
+  .topbar .backbtn svg, .topbar .editbtn svg{width:18px;height:18px;}
+  .topbar h1{
+    font-size:20px; font-weight:800; margin:0; flex:1;
+    letter-spacing:-0.3px; overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .topbar .sub{
+    font-size:12.5px; color:var(--ink-soft); margin-top:2px; font-weight:500;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px; padding:22px 18px 4px;
+  }
+  .brand .mark{
+    width:42px;height:42px;border-radius:13px;
+    background:linear-gradient(155deg, var(--accent), var(--accent-dark));
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:var(--shadow-sm);
+    flex-shrink:0;
+  }
+  .brand .mark svg{width:22px;height:22px;color:#fff;}
+  .brand h1{ font-size:22px; font-weight:800; margin:0; letter-spacing:-0.4px;}
+  .brand p{ margin:1px 0 0; font-size:12.5px; color:var(--ink-soft); font-weight:500;}
+
+  main{padding:6px 18px 24px; flex:1;}
+
+  /* ---------- folder card ---------- */
+  .folder-card{
+    background:var(--folder-bg); border:1px solid #cddaeb;
+    border-radius:var(--radius); padding:15px 16px;
+    margin-bottom:12px; display:flex; align-items:center; gap:14px;
+    cursor:pointer; position:relative;
+    transition: transform .15s ease;
+  }
+  .folder-card:active{ transform: scale(0.98); }
+  .folder-card .ficon{
+    width:42px;height:42px;border-radius:12px; background:var(--folder);
+    display:flex;align-items:center;justify-content:center; flex-shrink:0;
+    box-shadow:var(--shadow-sm);
+  }
+  .folder-card .ficon svg{width:20px;height:20px;color:#fff;}
+  .folder-card .info{flex:1; min-width:0;}
+  .folder-card .info h3{margin:0 0 4px; font-size:15.5px; font-weight:800; color:var(--folder); overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .folder-card .meta{font-size:12px; color:var(--ink-soft); font-weight:600;}
+  .folder-card .chev{color:var(--folder); flex-shrink:0;}
+  .folder-card .chev svg{width:18px;height:18px;}
+
+  /* ---------- deck list ---------- */
+  .deck-card{
+    background:var(--card-bg); border:1px solid var(--card-border);
+    border-radius:var(--radius); padding:16px 16px;
+    margin-bottom:12px; display:flex; align-items:center; gap:14px;
+    box-shadow:var(--shadow-sm); cursor:pointer;
+    position:relative; overflow:hidden;
+    transition: transform .15s ease;
+  }
+  .deck-card:active{ transform: scale(0.98); }
+  .deck-card .stripe{
+    position:absolute; inset-inline-start:0; top:0; bottom:0; width:6px;
+  }
+  .deck-card .info{flex:1; min-width:0;}
+  .deck-card .info h3{margin:0 0 4px; font-size:16px; font-weight:700; overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .deck-card .meta{font-size:12.5px; color:var(--ink-soft); display:flex; gap:10px; align-items:center;}
+  .progress-mini{
+    height:6px; border-radius:4px; background:var(--paper-2); overflow:hidden; margin-top:8px;
+  }
+  .progress-mini > div{height:100%; background:var(--good); border-radius:4px;}
+  .deck-card .chev{color:var(--muted); flex-shrink:0;}
+  .deck-card .chev svg{width:18px;height:18px;}
+  .deck-card .folder-tag{
+    display:inline-block; font-size:10.5px; font-weight:700; color:var(--folder);
+    background:var(--folder-bg); padding:2px 8px; border-radius:8px; margin-bottom:6px;
+  }
+
+  .empty-state{
+    text-align:center; padding:50px 20px 20px; color:var(--ink-soft);
+  }
+  .empty-state .ico{
+    width:64px;height:64px;border-radius:20px; margin:0 auto 16px;
+    background:var(--card-bg); border:1px dashed var(--card-border);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .empty-state .ico svg{width:28px;height:28px;color:var(--accent);}
+  .empty-state h3{margin:0 0 6px; color:var(--ink); font-size:16px;}
+  .empty-state p{margin:0; font-size:13.5px; line-height:1.9;}
+
+  /* ---------- buttons ---------- */
+  .btn{
+    border:none; border-radius:13px; padding:12px 16px; font-size:14.5px;
+    font-weight:700; cursor:pointer; font-family:inherit; display:inline-flex;
+    align-items:center; justify-content:center; gap:8px;
+  }
+  .btn svg{width:17px;height:17px;}
+  .btn-primary{ background:var(--accent); color:#fff; box-shadow:0 8px 18px -8px rgba(91,75,138,0.6);}
+  .btn-primary:active{ background:var(--accent-dark); }
+  .btn-secondary{ background:var(--card-bg); color:var(--ink); border:1px solid var(--card-border); }
+  .btn-ghost{ background:transparent; color:var(--accent); }
+  .btn-danger-ghost{ background:var(--bad-bg); color:var(--bad); }
+  .btn-good{ background:var(--good-bg); color:var(--good); }
+  .btn-bad{ background:var(--bad-bg); color:var(--bad); }
+  .btn-block{width:100%;}
+  .btn-sm{padding:8px 12px; font-size:13px; border-radius:10px;}
+  .btn:disabled{opacity:.45; cursor:not-allowed;}
+
+  .action-row{ display:flex; gap:10px; margin:14px 0 20px; }
+
+  /* ---------- FAB ---------- */
+  .fab-wrap{
+    position:fixed; bottom:0; inset-inline:0; z-index:30;
+    display:flex; justify-content:center;
+  }
+  .fab-bar{
+    width:100%; max-width:480px; background:var(--card-bg);
+    border-top:1px solid var(--card-border);
+    padding:10px 18px calc(10px + env(safe-area-inset-bottom));
+    display:flex; gap:10px; box-shadow:0 -8px 24px -14px rgba(32,36,54,0.3);
+  }
+
+  /* ---------- cards list inside deck ---------- */
+  .word-row{
+    background:var(--card-bg); border:1px solid var(--card-border);
+    border-radius:14px; padding:12px 14px; margin-bottom:8px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .word-row .txt{flex:1; min-width:0;}
+  .word-row .en-w{font-weight:700; font-size:14.5px;}
+  .word-row .fa-w{font-size:13px; color:var(--ink-soft); margin-top:2px;}
+  .word-row .dot{
+    width:8px;height:8px;border-radius:50%; flex-shrink:0;
+  }
+  .dot.known{background:var(--good);}
+  .dot.new{background:var(--accent-2);}
+  .icon-btn{
+    width:32px;height:32px;border-radius:9px;border:none;background:var(--paper-2);
+    display:flex;align-items:center;justify-content:center; cursor:pointer; color:var(--ink-soft); flex-shrink:0;
+  }
+  .icon-btn svg{width:15px;height:15px;}
+  .icon-btn.danger{color:var(--bad);}
+
+  .section-label{
+    font-size:12.5px; font-weight:700; color:var(--ink-soft); margin:18px 0 8px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .section-label::after{content:'';flex:1;height:1px;background:var(--card-border);}
+
+  /* ---------- modal ---------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(20,22,35,0.5); z-index:50;
+    display:flex; align-items:flex-end; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .2s ease;
+  }
+  .overlay.show{opacity:1; pointer-events:auto;}
+  .sheet{
+    width:100%; max-width:480px; background:var(--card-bg);
+    border-radius:22px 22px 0 0; padding:20px 18px calc(20px + env(safe-area-inset-bottom));
+    transform:translateY(20px); transition:transform .25s ease;
+    max-height:88vh; overflow-y:auto; position:relative;
+  }
+  .overlay.show .sheet{transform:translateY(0);}
+  .sheet h3{margin:0 0 4px; font-size:17px; font-weight:800;}
+  .sheet .hint{font-size:12.5px; color:var(--ink-soft); margin:0 0 16px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-bottom:6px;}
+  .field input, .field textarea, .field select{
+    width:100%; border:1px solid var(--card-border); border-radius:12px;
+    padding:11px 13px; font-size:14.5px; font-family:inherit; background:var(--paper);
+    color:var(--ink);
+  }
+  .field textarea{resize:vertical; min-height:60px;}
+  .field input:focus, .field textarea:focus, .field select:focus{outline:2px solid var(--accent); outline-offset:1px;}
+  .sheet-actions{display:flex; gap:10px; margin-top:6px;}
+  .sheet .close-x{
+    position:absolute; top:16px; inset-inline-end:16px; width:30px;height:30px;
+    border-radius:9px; border:none; background:var(--paper-2); color:var(--ink-soft);
+    display:flex;align-items:center;justify-content:center; cursor:pointer;
+  }
+  .sheet .close-x svg{width:14px;height:14px;}
+  .file-drop{
+    border:1.5px dashed var(--card-border); border-radius:14px; padding:22px 14px;
+    text-align:center; cursor:pointer; background:var(--paper); margin-bottom:14px;
+    position:relative; overflow:hidden; display:block;
+  }
+  .file-drop input[type=file]{
+    position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer;
+  }
+  .file-drop svg{width:26px;height:26px;color:var(--accent); margin-bottom:8px;}
+  .file-drop p{margin:0; font-size:13px; color:var(--ink-soft);}
+  .file-drop strong{color:var(--accent);}
+  .import-summary{
+    background:var(--good-bg); color:var(--good); border-radius:12px; padding:12px 14px;
+    font-size:13px; margin-bottom:12px; line-height:1.8;
+  }
+  .toast{
+    position:fixed; bottom:96px; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:#fff; padding:10px 18px; border-radius:30px;
+    font-size:13px; font-weight:600; z-index:60; box-shadow:var(--shadow);
+    opacity:0; pointer-events:none; transition:opacity .25s, transform .25s;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(-6px);}
+
+  .quickadd-opt{
+    display:flex; align-items:center; gap:12px; padding:14px 14px;
+    border-radius:14px; border:1px solid var(--card-border); background:var(--paper);
+    cursor:pointer; margin-bottom:10px;
+  }
+  .quickadd-opt .qi{
+    width:38px;height:38px;border-radius:11px; display:flex;align-items:center;justify-content:center; flex-shrink:0;
+  }
+  .quickadd-opt .qi svg{width:18px;height:18px;color:#fff;}
+  .quickadd-opt .qt strong{display:block; font-size:14px;}
+  .quickadd-opt .qt span{font-size:12px; color:var(--ink-soft);}
+
+  /* ---------- study mode ---------- */
+  .study-wrap{
+    padding:6px 18px 24px; display:flex; flex-direction:column; align-items:center;
+  }
+  .study-progress{
+    width:100%; display:flex; align-items:center; gap:10px; margin-bottom:6px;
+  }
+  .study-progress .bar{flex:1; height:8px; border-radius:6px; background:var(--paper-2); overflow:hidden;}
+  .study-progress .bar > div{height:100%; background:var(--accent); border-radius:6px; transition:width .3s ease;}
+  .study-progress span{font-size:12px; color:var(--ink-soft); font-weight:700; flex-shrink:0;}
+
+  .stage{
+    position:relative; width:100%; max-width:340px; height:230px; margin:26px 0 10px;
+  }
+  .ghost-card{
+    position:absolute; inset:0; border-radius:20px; background:var(--card-bg);
+    border:1px solid var(--card-border);
+  }
+  .ghost-card.g1{ transform: scale(0.94) translateY(10px); opacity:.6; }
+  .ghost-card.g2{ transform: scale(0.88) translateY(18px); opacity:.35; }
+
+  .flip-card{
+    position:absolute; inset:0; cursor:pointer; perspective:1400px;
+  }
+  .flip-inner{
+    position:relative; width:100%; height:100%; transition:transform .5s cubic-bezier(.4,.2,.2,1);
+    transform-style:preserve-3d;
+  }
+  .flip-card.flipped .flip-inner{ transform:rotateY(180deg); }
+  .face{
+    position:absolute; inset:0; backface-visibility:hidden; border-radius:20px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:24px; text-align:center; box-shadow:var(--shadow);
+    border:1px solid var(--card-border);
+  }
+  .face.front{ background:var(--card-bg); }
+  .face.back{ background:linear-gradient(160deg, var(--accent), var(--accent-dark)); color:#fff; transform:rotateY(180deg); border:none; }
+  .face .ring-holes{
+    position:absolute; top:14px; left:50%; transform:translateX(-50%);
+    display:flex; gap:14px;
+  }
+  .face .ring-holes span{ width:9px; height:9px; border-radius:50%; background:var(--paper); box-shadow:inset 0 2px 3px rgba(0,0,0,0.15);}
+  .face.back .ring-holes span{ background:rgba(255,255,255,0.35); box-shadow:none;}
+  .face .word{ font-size:24px; font-weight:800; line-height:1.4; word-break:break-word;}
+  .face.front .word{ font-family:'Inter',Tahoma,sans-serif; direction:ltr; }
+  .face .tap-hint{ position:absolute; bottom:14px; font-size:11px; color:var(--muted); font-weight:600;}
+  .face.back .tap-hint{ color:rgba(255,255,255,0.75); }
+
+  .study-rate{ display:flex; gap:12px; width:100%; max-width:340px; margin-top:18px; }
+  .rate-btn{
+    flex:1; border:none; border-radius:16px; padding:15px 10px; font-weight:800; font-size:14px;
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;
+  }
+  .rate-btn svg{width:20px;height:20px;}
+  .rate-bad{ background:var(--bad-bg); color:var(--bad); }
+  .rate-good{ background:var(--good-bg); color:var(--good); }
+  .study-hint{ font-size:12px; color:var(--muted); margin-top:16px; text-align:center; }
+  .dir-toggle{
+    display:flex; align-items:center; gap:8px; background:var(--card-bg);
+    border:1px solid var(--card-border); border-radius:30px; padding:5px; margin-bottom:4px;
+  }
+  .dir-toggle button{
+    border:none; background:transparent; padding:7px 14px; border-radius:24px; font-size:12.5px;
+    font-weight:700; color:var(--ink-soft); cursor:pointer;
+  }
+  .dir-toggle button.active{ background:var(--accent); color:#fff; }
+
+  .finish-wrap{ text-align:center; padding:50px 24px 20px; }
+  .finish-wrap .badge{
+    width:78px; height:78px; border-radius:50%; margin:0 auto 18px;
+    background:linear-gradient(155deg, var(--accent-2), #C98A2B);
+    display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow);
+  }
+  .finish-wrap .badge svg{width:36px;height:36px; color:#fff;}
+  .finish-wrap h2{margin:0 0 6px; font-size:20px;}
+  .finish-wrap p{margin:0 0 22px; color:var(--ink-soft); font-size:13.5px;}
+  .finish-stats{ display:flex; gap:12px; justify-content:center; margin-bottom:26px;}
+  .finish-stats .stat{
+    background:var(--card-bg); border:1px solid var(--card-border); border-radius:14px;
+    padding:14px 18px; min-width:88px;
+  }
+  .finish-stats .stat b{display:block; font-size:20px;}
+  .finish-stats .stat span{font-size:11.5px; color:var(--ink-soft);}
+  .finish-stats .stat.good b{color:var(--good);}
+  .finish-stats .stat.bad b{color:var(--bad);}
+
+  .sheet-pick{
+    display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;
+  }
+  .sheet-chip{
+    border:1px solid var(--card-border); background:var(--paper); border-radius:20px;
+    padding:8px 14px; font-size:12.5px; font-weight:600; cursor:pointer; color:var(--ink-soft);
+  }
+  .sheet-chip.active{ background:var(--accent); color:#fff; border-color:var(--accent);}
+
+  /* ---------- audio review speaker indicator ---------- */
+  .spk{
+    width:44px; height:44px; border-radius:50%; background:var(--accent); color:#fff;
+    display:flex; align-items:center; justify-content:center; margin-bottom:6px;
+  }
+  .spk svg{width:20px;height:20px;}
+  .spk.speaking{ animation: pulse-speak 1s ease-in-out infinite; }
+  @keyframes pulse-speak{
+    0%,100%{ box-shadow:0 0 0 0 rgba(91,75,138,0.45); }
+    50%{ box-shadow:0 0 0 10px rgba(91,75,138,0); }
+  }
+  .auto-controls{ display:flex; gap:12px; width:100%; max-width:340px; margin-top:14px; }
+  .auto-controls .btn{ flex:1; }
+  .rate-toggle{
+    display:flex; align-items:center; gap:8px; background:var(--card-bg);
+    border:1px solid var(--card-border); border-radius:30px; padding:5px; margin-bottom:2px;
+  }
+  .rate-toggle button{
+    border:none; background:transparent; padding:7px 14px; border-radius:24px; font-size:12.5px;
+    font-weight:700; color:var(--ink-soft); cursor:pointer;
+  }
+  .rate-toggle button.active{ background:var(--accent-2); color:#fff; }
+  .or-divider{ display:flex; align-items:center; gap:10px; margin:16px 0; color:var(--muted); font-size:12px; font-weight:700; }
+  .or-divider::before, .or-divider::after{ content:''; flex:1; height:1px; background:var(--card-border); }
+  .paste-box textarea{
+    width:100%; min-height:90px; border:1px solid var(--card-border); border-radius:12px;
+    padding:11px 13px; font-size:12.5px; font-family:'Inter',monospace; direction:ltr; text-align:left;
+    background:var(--paper); color:var(--ink); resize:vertical;
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- storage layer with graceful fallback ---------------- */
+  var memoryStore = {};
+  var hasWindowStorage = typeof window.storage !== 'undefined' && window.storage;
+
+  async function storageGet(key){
+    if(hasWindowStorage){
+      try{
+        var res = await window.storage.get(key, false);
+        return res ? res.value : null;
+      }catch(e){ return null; }
+    }
+    return memoryStore[key] !== undefined ? memoryStore[key] : null;
+  }
+  async function storageSet(key, value){
+    if(hasWindowStorage){
+      try{ await window.storage.set(key, value, false); return true; }
+      catch(e){ console.error('storage set failed', e); return false; }
+    }
+    memoryStore[key] = value;
+    return true;
+  }
+
+  /* ---------------- state ---------------- */
+  var state = {
+    view: 'home',            // home | folder | deck | study | finish
+    folders: [],
+    decks: [],
+    currentFolderId: null,
+    currentDeckId: null,
+    editingCard: null,       // {deckId, cardId} or null
+    study: null
+  };
+
+  function uid(){
+    return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8);
+  }
+
+  function findDeck(id){ return state.decks.find(function(d){return d.id===id;}); }
+  function findFolder(id){ return state.folders.find(function(f){return f.id===id;}); }
+  function decksInFolder(folderId){ return state.decks.filter(function(d){return d.folderId===folderId;}); }
+  function ungroupedDecks(){ return state.decks.filter(function(d){return !d.folderId;}); }
+
+  async function loadState(){
+    var raw = await storageGet('flashcard_data_v2');
+    if(raw){
+      try{
+        var parsed = JSON.parse(raw);
+        state.folders = parsed.folders || [];
+        state.decks = parsed.decks || [];
+      }catch(e){ state.folders=[]; state.decks=[]; }
+    } else {
+      // try migrating from older flat version
+      var oldRaw = await storageGet('flashcard_decks_v1');
+      if(oldRaw){
+        try{ state.decks = JSON.parse(oldRaw); state.decks.forEach(function(d){d.folderId=null;}); }
+        catch(e){ state.decks = []; }
+        state.folders = [];
+      } else {
+        state.folders = [{id: uid(), name:'ترم ۱', color:'#3A6EA5', createdAt:Date.now()}];
+        state.decks = [{
+          id: uid(), name:'دسته‌ی نمونه', folderId: state.folders[0].id, color:'#5B4B8A', createdAt: Date.now(),
+          cards: [
+            {id: uid(), en: "Hope this isn't a bad time", fa: 'امیدوارم موقع بدی نباشد', known:false},
+            {id: uid(), en: "I'm getting forgetful these days", fa: 'این روزها فراموشکار شده‌ام', known:false},
+            {id: uid(), en: 'Could you repeat?', fa: 'می‌شود دوباره تکرار کنید؟', known:false}
+          ]
+        }];
+      }
+      await persist();
+    }
+    render();
+  }
+
+  async function persist(){
+    await storageSet('flashcard_data_v2', JSON.stringify({folders: state.folders, decks: state.decks}));
+  }
+
+  /* ---------------- toast ---------------- */
+  var toastTimer=null;
+  function showToast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+  }
+
+  /* ---------------- icons ---------------- */
+  var ICONS = {
+    back: '<svg viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    layers: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3l9 5-9 5-9-5 9-5z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M3 13l9 5 9-5" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+    chev: '<svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    plus: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
+    upload: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 16V4M7 9l5-5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+    play: '<svg viewBox="0 0 24 24" fill="none"><path d="M7 5l12 7-12 7V5z" fill="currentColor"/></svg>',
+    edit: '<svg viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10.5-10.5a1.8 1.8 0 000-2.5l-1.5-1.5a1.8 1.8 0 00-2.5 0L4 16v4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0v12a2 2 0 01-2 2H8a2 2 0 01-2-2V7h12z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    close: '<svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    x: '<svg viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
+    trophy: '<svg viewBox="0 0 24 24" fill="none"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 01-10 0V4z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M7 5H4a1 1 0 00-1 1v1a4 4 0 004 4M17 5h3a1 1 0 011 1v1a4 4 0 01-4 4" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    empty: '<svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    folder: '<svg viewBox="0 0 24 24" fill="none"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+    transfer: '<svg viewBox="0 0 24 24" fill="none"><path d="M7 7h13M7 7l3.2-3.2M7 7l3.2 3.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 17H4M17 17l-3.2-3.2M17 17l-3.2 3.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    speaker: '<svg viewBox="0 0 24 24" fill="none"><path d="M5 9v6h4l5 4V5L9 9H5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M16.3 8.7a5 5 0 010 6.6M19 6.5a8.5 8.5 0 010 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    speakerMute: '<svg viewBox="0 0 24 24" fill="none"><path d="M5 9v6h4l5 4V5L9 9H5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M15.5 9.5l5 5M20.5 9.5l-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    pause: '<svg viewBox="0 0 24 24" fill="none"><rect x="6" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>',
+    skip: '<svg viewBox="0 0 24 24" fill="none"><path d="M5 5l10 7-10 7V5z" fill="currentColor"/><rect x="17" y="5" width="2.4" height="14" fill="currentColor"/></svg>'
+  };
+
+  var PALETTE = ['#5B4B8A','#DDA448','#2F8F5B','#C1483D','#3A6EA5','#8A5A83'];
+  var FOLDER_PALETTE = ['#3A6EA5','#8A5A83','#2F8F5B','#C98A2B','#5B4B8A'];
+
+  /* ---------------- render root ---------------- */
+  function render(){
+    var app = document.getElementById('app');
+    if(state.view==='home') app.innerHTML = renderHome();
+    else if(state.view==='folder') app.innerHTML = renderFolder();
+    else if(state.view==='deck') app.innerHTML = renderDeck();
+    else if(state.view==='study') app.innerHTML = renderStudy();
+    else if(state.view==='finish') app.innerHTML = renderFinish();
+    else if(state.view==='autoplay') app.innerHTML = renderAutoStudy();
+    else if(state.view==='autofinish') app.innerHTML = renderAutoFinish();
+    bindEvents();
+  }
+
+  function folderStats(folderId){
+    var decks = decksInFolder(folderId);
+    var totalCards = 0, known = 0;
+    decks.forEach(function(d){ totalCards += d.cards.length; known += d.cards.filter(function(c){return c.known;}).length; });
+    return {deckCount: decks.length, totalCards: totalCards, known: known};
+  }
+
+  function deckCardHtml(d, i, showFolderTag){
+    var total = d.cards.length;
+    var known = d.cards.filter(function(c){return c.known;}).length;
+    var pct = total ? Math.round(known/total*100) : 0;
+    var color = d.color || PALETTE[i % PALETTE.length];
+    var folder = d.folderId ? findFolder(d.folderId) : null;
+    var tagHtml = (showFolderTag && folder) ? '<span class="folder-tag">'+escapeHtml(folder.name)+'</span><br>' : '';
+    return '<div class="deck-card" data-open-deck="'+d.id+'">'+
+      '<div class="stripe" style="background:'+color+'"></div>'+
+      '<div class="info">'+
+        tagHtml+
+        '<h3>'+escapeHtml(d.name)+'</h3>'+
+        '<div class="meta"><span>'+total+' کلمه</span><span>&middot;</span><span>'+known+' بلد شده</span></div>'+
+        '<div class="progress-mini"><div style="width:'+pct+'%; background:'+color+'"></div></div>'+
+      '</div>'+
+      '<div class="chev">'+ICONS.chev+'</div>'+
+    '</div>';
+  }
+
+  /* ================= HOME ================= */
+  function renderHome(){
+    var foldersHtml = state.folders.map(function(f, i){
+      var st = folderStats(f.id);
+      var color = f.color || FOLDER_PALETTE[i % FOLDER_PALETTE.length];
+      return '<div class="folder-card" data-open-folder="'+f.id+'">'+
+        '<div class="ficon" style="background:'+color+'">'+ICONS.folder+'</div>'+
+        '<div class="info">'+
+          '<h3 style="color:'+color+'">'+escapeHtml(f.name)+'</h3>'+
+          '<div class="meta">'+st.deckCount+' دسته &middot; '+st.totalCards+' کلمه &middot; '+st.known+' بلد شده</div>'+
+        '</div>'+
+        '<div class="chev" style="color:'+color+'">'+ICONS.chev+'</div>'+
+      '</div>';
+    }).join('');
+
+    var ungrouped = ungroupedDecks();
+    var ungroupedHtml = ungrouped.map(function(d,i){ return deckCardHtml(d, i, false); }).join('');
+
+    var body = '';
+    if(state.folders.length===0 && state.decks.length===0){
+      body = '<div class="empty-state">'+
+        '<div class="ico">'+ICONS.layers.replace(/#fff/g,'var(--accent)')+'</div>'+
+        '<h3>هنوز چیزی نساخته‌ای</h3>'+
+        '<p>یک پوشه بساز (مثل «ترم ۱»)، داخلش دسته اضافه کن،<br>یا مستقیم از اکسل وارد کن.</p>'+
+      '</div>';
+    } else {
+      if(state.folders.length>0){
+        body += '<div class="section-label">پوشه‌ها</div>' + foldersHtml;
+      }
+      if(ungrouped.length>0){
+        body += '<div class="section-label">دسته‌های بدون پوشه</div>' + ungroupedHtml;
+      }
+    }
+
+    return ''+
+    '<div class="brand">'+
+      '<div class="mark">'+ICONS.layers+'</div>'+
+      '<div style="flex:1"><h1>فلش‌کارت</h1><p>مرور روزانه‌ی لغات درس</p></div>'+
+      '<button class="editbtn" data-action="backup-open" title="پشتیبان‌گیری و انتقال بین دستگاه‌ها">'+ICONS.transfer+'</button>'+
+    '</div>'+
+    '<main>'+ body +'</main>'+
+    '<div class="fab-wrap"><div class="fab-bar">'+
+      '<button class="btn btn-secondary" style="flex:1" data-action="import-open">'+ICONS.upload+' وارد کردن اکسل</button>'+
+      '<button class="btn btn-primary" style="flex:1" data-action="quickadd-open">'+ICONS.plus+' افزودن</button>'+
+    '</div></div>'+
+    renderQuickAddSheet()+
+    renderNewFolderSheet()+
+    renderNewDeckSheet()+
+    renderImportSheet()+
+    renderBackupSheet();
+  }
+
+  /* ================= FOLDER DETAIL ================= */
+  function renderFolder(){
+    var f = findFolder(state.currentFolderId);
+    if(!f){ state.view='home'; return renderHome(); }
+    var decks = decksInFolder(f.id);
+    var st = folderStats(f.id);
+
+    var body = decks.length===0
+      ? '<div class="empty-state">'+
+          '<div class="ico">'+ICONS.empty.replace(/currentColor/g,'var(--accent)')+'</div>'+
+          '<h3>این پوشه خالی است</h3>'+
+          '<p>یک دسته‌ی جدید بساز یا از اکسل وارد کن.</p>'+
+        '</div>'
+      : decks.map(function(d,i){ return deckCardHtml(d, i, false); }).join('');
+
+    return ''+
+    '<div class="topbar">'+
+      '<button class="backbtn" data-action="go-home">'+ICONS.back+'</button>'+
+      '<div style="flex:1"><h1>'+escapeHtml(f.name)+'</h1><div class="sub">'+st.deckCount+' دسته &middot; '+st.totalCards+' کلمه</div></div>'+
+      '<button class="editbtn" data-action="folderedit-open">'+ICONS.edit+'</button>'+
+    '</div>'+
+    '<main>'+ body +'</main>'+
+    '<div class="fab-wrap"><div class="fab-bar">'+
+      '<button class="btn btn-secondary" style="flex:1" data-action="import-open-forfolder">'+ICONS.upload+' وارد کردن اکسل</button>'+
+      '<button class="btn btn-primary" style="flex:1" data-action="newdeck-open-infolder">'+ICONS.plus+' دسته‌ی جدید</button>'+
+    '</div></div>'+
+    renderNewDeckSheet()+
+    renderImportSheet()+
+    renderFolderEditSheet(f);
+  }
+
+  function renderFolderEditSheet(f){
+    return '<div class="overlay" id="overlay-folderedit">'+
+      '<div class="sheet">'+
+        '<button class="close-x" data-action="close-overlays">'+ICONS.close+'</button>'+
+        '<h3>ویرایش پوشه</h3>'+
+        '<div class="field"><label>نام پوشه</label><input type="text" id="folderedit-name" value="'+escapeAttr(f.name)+'" /></div>'+
+        '<div class="sheet-actions">'+
+          '<button class="btn btn-secondary btn-block" data-action="close-overlays">انصراف</button>'+
+          '<button class="btn btn-primary btn-block" data-action="folderedit-save" data-folderid="'+f.id+'">ذخیره</button>'+
+        '</div>'+
+        '<div class="sheet-actions" style="margin-top:10px">'+
+          '<button class="btn btn-danger-ghost btn-block" data-action="folder-delete" data-folderid="'+f.id+'">'+ICONS.trash+' حذف پوشه (دسته‌ها حذف نمی‌شوند)</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  /* ================= DECK DETAIL ================= */
+  function renderDeck(){
+    var d = findDeck(state.currentDeckId);
+    if(!d){ state.view='home'; return renderHome(); }
+    var total = d.cards.length;
+    var known = d.cards.filter(function(c){return c.known;}).length;
+
+    var rows = total===0
+      ? '<div class="empty-state">'+
+          '<div class="ico">'+ICONS.empty.replace(/currentColor/g,'var(--accent)')+'</div>'+
+          '<h3>این دسته خالی است</h3>'+
+          '<p>یک کلمه اضافه کن یا از اکسل وارد کن.</p>'+
+        '</div>'
+      : d.cards.map(function(c){
+          return '<div class="word-row">'+
+            '<span class="dot '+(c.known?'known':'new')+'"></span>'+
+            '<div class="txt">'+
+              '<div class="en-w en">'+escapeHtml(c.en)+'</div>'+
+              '<div class="fa-w">'+escapeHtml(c.fa)+'</div>'+
+            '</div>'+
+            '<button class="icon-btn" data-edit-card="'+c.id+'">'+ICONS.edit+'</button>'+
+            '<button class="icon-btn danger" data-del-card="'+c.id+'">'+ICONS.trash+'</button>'+
+          '</div>';
+        }).join('');
+
+    return ''+
+    '<div class="topbar">'+
+      '<button class="backbtn" data-action="'+(d.folderId?'go-folder':'go-home')+'" data-folderid="'+(d.folderId||'')+'">'+ICONS.back+'</button>'+
+      '<div style="flex:1"><h1>'+escapeHtml(d.name)+'</h1><div class="sub">'+total+' کلمه &middot; '+known+' بلد شده</div></div>'+
+      '<button class="editbtn" data-action="deckedit-open">'+ICONS.edit+'</button>'+
+    '</div>'+
+    '<main>'+
+      '<div class="action-row" style="margin-bottom:8px">'+
+        '<button class="btn btn-primary btn-block" data-action="start-study" '+(total===0?'disabled':'')+'>'+ICONS.play+' مرور تعاملی (فلیپ کارت)</button>'+
+      '</div>'+
+      '<div class="action-row">'+
+        '<button class="btn btn-secondary" style="flex:1" data-action="start-autostudy" '+(total===0?'disabled':'')+'>'+ICONS.speaker+' مرور خودکار</button>'+
+        '<button class="btn btn-secondary" style="flex:1" data-action="start-manualstudy" '+(total===0?'disabled':'')+'>'+ICONS.skip+' مرور دستی</button>'+
+      '</div>'+
+      '<div class="section-label">لغات این دسته</div>'+
+      rows+
+    '</main>'+
+    '<div class="fab-wrap"><div class="fab-bar">'+
+      '<button class="btn btn-secondary" style="flex:1" data-action="import-open-fordeck">'+ICONS.upload+' وارد کردن اکسل</button>'+
+      '<button class="btn btn-primary" style="flex:1" data-action="addcard-open">'+ICONS.plus+' افزودن کلمه</button>'+
+    '</div></div>'+
+    renderCardSheet(d)+
+    renderImportSheet()+
+    renderDeckEditSheet(d);
+  }
+
+  function renderDeckEditSheet(d){
+    var folderOptions = '<option value="">بدون پوشه</option>' + state.folders.map(function(f){
+      return '<option value="'+f.id+'" '+(d.folderId===f.id?'selected':'')+'>'+escapeHtml(f.name)+'</option>';
+    }).join('');
+    return '<div class="overlay" id="overlay-deckedit">'+
+      '<div class="sheet">'+
+        '<button class="close-x" data-action="close-overlays">'+ICONS.close+'</button>'+
+        '<h3>ویرایش دسته</h3>'+
+        '<div class="field"><label>نام دسته</label><input type="text" id="deckedit-name" value="'+escapeAttr(d.name)+'" /></div>'+
+        '<div class="field"><label>پوشه</label><select id="deckedit-folder">'+folderOptions+'</select></div>'+
+        '<div class="sheet-actions">'+
+          '<button class="btn btn-secondary btn-block" data-action="close-overlays">انصراف</button>'+
+          '<button class="btn btn-primary btn-block" data-action="deckedit-save" data-deckid="'+d.id+'">ذخیره</button>'+
+        '</div>'+
+        '<div class="sheet-actions" style="margin-top:10px">'+
+          '<button class="btn btn-danger-ghost btn-block" data-action="deck-delete" data-deckid="'+d.id+'">'+ICONS.trash+' حذف این دسته</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  /* ================= QUICK ADD SHEET ================= */
+  function renderQuickAddSheet(){
+    return '<div class="overlay" id="overlay-quickadd">'+
+      '<div class="sheet">'+
+        '<button class="close-x" data-action="close-overlays">'+ICONS.close+'</button>'+
+        '<h3>افزودن</h3>'+
+        '<p class="hint">می‌خواهی چه چیزی بسازی؟</p>'+
+        '<div class="quickadd-opt" data-action="newfolder-open">'+
+          '<div class="qi" style="background:var(--folder)">'+ICONS.folder+'</div>'+
+          '<div class="qt"><strong>پوشه‌ی جدید</strong><span>گروه‌بندی چند دسته با هم (مثل ترم ۱)</span></div>'+
+        '</div>'+
+        '<div class="quickadd-opt" data-action="newdeck-open">'+
+          '<div class="qi" style="background:var(--accent)">'+ICONS.layers+'</div>'+
+          '<div class="qt"><strong>دسته‌ی جدید</strong><span>یک بخش/فصل شامل چند کلمه</span></div>'+
+        '</div>'+
+        '<div class="quickadd-opt" data-action="backup-open">'+
+          '<div class="qi" style="background:#3A6EA5">'+ICONS.transfer.replace(/currentColor/g,'#fff')+'</div>'+
+          '<div class="qt"><strong>پشتیبان‌گیری و انتقال</strong><span>بردن اطلاعات بین گوشی و لپ‌تاپ</span></div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  /* ================= BACKUP / TRANSFER SHEET ================= */
+  var pendingBackup = null;
+  function renderBackupSheet(){
+    var statusHtml = '';
+    var actionButtons = '';
+    if(pendingBackup){
+      var fc = (pendingBackup.folders||[]).length;
+      var dc = (pendingBackup.decks||[]).length;
+      statusHtml = '<div class="import-summary">'+fc+' پوشه و '+dc+' دسته در این فایل پیدا شد.</div>';
+      actionButtons =
+        '<div class="sheet-actions">'+
+          '<button class="btn btn-primary btn-block" data-action="backup-import-merge">افزودن به اطلاعات فعلی</button>'+
+        '</div>'+
+        '<div class="sheet-actions" style="margin-top:10px">'+
+          '<button class="btn btn-danger-ghost btn-block" data-action="backup-import-replace">'+ICONS.trash+' جایگزینی کامل (پاک شدن اطلاعات فعلی)</button>'+
+        '</div>';
+    }
+    return '<div class="overlay" id="overlay-backup">'+
+      '<div class="sheet">'+
+        '<button class="close-x" data-action="close-overlays">'+ICONS.close+'</button>'+
+        '<h3>پشتیبان‌گیری و انتقال</h3>'+
+        '<p class="hint">یک فایل پشتیبان (JSON) از همه‌ی پوشه‌ها، دسته‌ها و کلمات می‌سازد. این فایل را با تلگرام، ایمیل، ایردراپ، گوگل‌درایو یا هر روش دیگری به گوشی یا لپ‌تاپ دیگر منتقل کن و از همان‌جا داخل برنامه وارد کن.</p>'+
+        '<button class="btn btn-primary btn-block" data-action="backup-export" style="margin-bottom:18px">'+ICONS.upload+' دانلود فایل پشتیبان</button>'+
+        '<div class="section-label">وارد کردن فایل پشتیبان</div>'+
+        '<label class="file-drop" for="backup-file-input">'+
+          '<input type="file" id="backup-file-input" accept=".json,application/json" />'+
+          ICONS.upload+'<p><strong>انتخاب فایل</strong><br>پسوند json.</p>'+
+        '</label>'+
+        '<div class="or-divider">یا</div>'+
+        '<p class="hint">اگر انتخاب فایل روی گوشی کار نکرد: فایل پشتیبان را با یک اپ متنی یا مرورگر باز کن، همه‌ی متن آن را کپی کن و اینجا جای‌گذاری کن.</p>'+
+        '<div class="paste-box field"><textarea id="backup-paste-text" placeholder="{&quot;folders&quot;: [...], &quot;decks&quot;: [...]}"></textarea></div>'+
+        '<button class="btn btn-secondary btn-block" data-action="backup-parse-paste" style="margin-bottom:6px">خواندن از متن جای‌گذاری‌شده</button>'+
+        statusHtml+
+        actionButtons+
+      '</div>'+
+    '</div>';
+  }
+
+  /* ================= NEW FOLDER SHEET ================= */
+  function renderNewFolderSheet(){
+    return '<div class="overlay" id="overlay-newfolder">'+
+      '<div class="sheet">'+
+        '<button class="close-x" data-action="close-overlays">'+ICONS.close+'</button>'+
+        '<h3>پوشه‌ی جدید</h3>'+
+        '<p class="hint">مثلاً «ترم ۱» یا «ترم ۲» برای گروه‌بندی دسته‌ها</p>'+
+        '<div class="field"><label>نام پوشه</label><input type="text" id="newfolder-name" placeholder="مثلاً: ترم ۱" /></div>'+
+        '<div class="sheet-actions">'+
+          '<button class="btn btn-secondary btn-block" data-action="close-overlays">انصراف</button>'+
+          '<button class="btn btn-primary btn-block" data-action="newfolder-save">ساخت پوشه</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  /* ================= NEW DECK SHEET ================= */
+  var newDeckFolderPreset = null;
+  function renderNewDeckSheet(){
+    var folderOptions = '<option value="">بدون پوشه</option>' + state.folders.map(function(f){
+      return '<option value="'+f.id+'" '+(newDeckFolderPreset===f.id?'selected':'')+'>'+escapeHtml(f.name)+'</option>';
+    }).join('');
+    return '<div class="overlay" id="overlay-newdeck">'+
+      '<div class="sheet">'+
+        '<button class="close-x" data-action="close-overlays">'+ICONS.close+'</button>'+
+        '<h3>دسته‌ی جدید</h3>'+
+        '<p class="hint">یک نام برای این بخش انتخاب کن، مثلاً «فصل ۱ - اجاره خانه»</p>'+
+        '<div class="field"><label>نام دسته</label><input type="text" id="newdeck-name" placeholder="مثلاً: فصل ۵ - خرید" /></div>'+
+        '<div class="field"><label>پوشه (اختیاری)</label><select id="newdeck-folder">'+folderOptions+'</select></div>'+
+        '<div class="sheet-actions">'+
+          '<button class="btn btn-secondary btn-block" data-action="close-overlays">انصراف</button>'+
+          '<button class="btn btn-primary btn-block" data-action="newdeck-save">ساخت دسته</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  /* ================= CARD (ADD/EDIT) SHEET ================= */
+  function renderCardSheet(d){
+    var editing = state.editingCard;
+    var isEdit = editing && editing.deckId===d.id && editing.cardId;
+    var card = isEdit ? d.cards.find(function(c){return c.id===editing.cardId;}) : null;
+    return '<div class="overlay" id="overlay-card">'+
+      '<div class="sheet">'+
+        '<button class="close-x" data-action="close-overlays">'+ICONS.close+'</button>'+
+        '<h3>'+(isEdit?'ویرایش کلمه':'افزودن کلمه')+'</h3>'+
+        '<p class="hint">واژه یا عبارت انگلیسی و معادل فارسی آن را بنویس.</p>'+
+        '<div class="field"><label>انگلیسی</label><input type="text" id="card-en" class="en" placeholder="e.g. I was hoping for something…" value="'+(card?escapeAttr(card.en):'')+'" /></div>'+
+        '<div class="field"><label>ترجمه فارسی</label><textarea id="card-fa" placeholder="ترجمه یا معادل فارسی">'+(card?escapeHtml(card.fa):'')+'</textarea></div>'+
+        '<div class="sheet-actions">'+
+          '<button class="btn btn-secondary btn-block" data-action="close-overlays">انصراف</button>'+
+          '<button class="btn btn-primary btn-block" data-action="card-save" data-deckid="'+d.id+'" data-cardid="'+(card?card.id:'')+'">ذخیره</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  /* ================= IMPORT SHEET ================= */
+  var pendingImport = null;
+  var importMergeDeckTarget = null;   // deck id -> merge cards into this deck
+  var importFolderTarget = null;      // folder id -> new decks created inside this folder
+
+  function renderImportSheet(){
+    var sheetChips = '';
+    var folderPicker = '';
+    if(pendingImport){
+      sheetChips = '<div class="sheet-pick">'+ pendingImport.sheetNames.map(function(name, idx){
+        var count = pendingImport.counts[idx];
+        return '<div class="sheet-chip active" data-import-sheet="'+idx+'">'+escapeHtml(name)+' ('+count+')</div>';
+      }).join('') + '</div>';
+
+      if(!importMergeDeckTarget){
+        var folderOptions = '<option value="">بدون پوشه</option>' + state.folders.map(function(f){
+          return '<option value="'+f.id+'" '+(importFolderTarget===f.id?'selected':'')+'>'+escapeHtml(f.name)+'</option>';
+        }).join('');
+        folderPicker = '<div class="field"><label>پوشه‌ی مقصد برای دسته‌های جدید</label><select id="import-folder-select">'+folderOptions+'</select></div>';
+      }
+    }
+    var hintText = importMergeDeckTarget
+      ? 'کلمات این فایل به همین دسته اضافه می‌شوند.'
+      : 'فایل اکسل را انتخاب کن. اگر چند برگه (تب) داشته باشد، برای هر برگه یک دسته‌ی جدید ساخته می‌شود. ستون انگلیسی و ستون فارسی به‌طور خودکار تشخیص داده می‌شوند.';
+    return '<div class="overlay" id="overlay-import">'+
+      '<div class="sheet">'+
+        '<button class="close-x" data-action="close-overlays">'+ICONS.close+'</button>'+
+        '<h3>وارد کردن از اکسل</h3>'+
+        '<p class="hint">'+hintText+'</p>'+
+        '<label class="file-drop" for="import-file-input">'+
+          '<input type="file" id="import-file-input" accept=".xlsx,.xls,.csv" />'+
+          ICONS.upload+
+          '<p><strong>انتخاب فایل</strong><br>xlsx / xls / csv</p>'+
+        '</label>'+
+        '<div id="import-status"></div>'+
+        sheetChips+
+        folderPicker+
+        '<div class="sheet-actions">'+
+          '<button class="btn btn-secondary btn-block" data-action="close-overlays">انصراف</button>'+
+          '<button class="btn btn-primary btn-block" data-action="import-confirm" '+(pendingImport?'':'disabled')+'>وارد کردن</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  /* ================= STUDY MODE ================= */
+  function renderStudy(){
+    var s = state.study;
+    if(!s || s.index >= s.queue.length){
+      state.view='finish';
+      return renderFinish();
+    }
+    var card = s.queue[s.index];
+    var frontText = card.en;
+    var backText = card.fa;
+    var pct = Math.round((s.index)/s.queue.length*100);
+
+    return ''+
+    '<div class="topbar">'+
+      '<button class="backbtn" data-action="exit-study">'+ICONS.back+'</button>'+
+      '<div><h1>مرور تعاملی</h1><div class="sub">'+escapeHtml(findDeck(state.currentDeckId).name)+'</div></div>'+
+    '</div>'+
+    '<div class="study-wrap">'+
+      '<div class="study-progress">'+
+        '<div class="bar"><div style="width:'+pct+'%"></div></div>'+
+        '<span>'+s.index+' / '+s.queue.length+'</span>'+
+      '</div>'+
+      '<div class="stage">'+
+        '<div class="ghost-card g2"></div>'+
+        '<div class="ghost-card g1"></div>'+
+        '<div class="flip-card '+(s.flipped?'flipped':'')+'" data-action="flip-card">'+
+          '<div class="flip-inner">'+
+            '<div class="face front">'+
+              '<div class="ring-holes"><span></span><span></span><span></span><span></span><span></span></div>'+
+              '<div class="word en">'+escapeHtml(frontText)+'</div>'+
+              '<div class="tap-hint">برای دیدن معنی فارسی لمس کن</div>'+
+            '</div>'+
+            '<div class="face back">'+
+              '<div class="ring-holes"><span></span><span></span><span></span><span></span><span></span></div>'+
+              '<div class="word">'+escapeHtml(backText)+'</div>'+
+              '<div class="tap-hint">حالا بلدم یا بلد نیستم را انتخاب کن</div>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      (s.flipped ?
+        '<div class="study-rate">'+
+          '<button class="rate-btn rate-bad" data-action="rate-bad">'+ICONS.x+'بلد نیستم</button>'+
+          '<button class="rate-btn rate-good" data-action="rate-good">'+ICONS.check+'بلدم</button>'+
+        '</div>'
+        : '<p class="study-hint">کارت را لمس کن تا معنی‌اش را ببینی</p>'
+      )+
+    '</div>';
+  }
+
+  function renderFinish(){
+    var s = state.study;
+    var d = findDeck(state.currentDeckId);
+    return ''+
+    '<div class="topbar">'+
+      '<button class="backbtn" data-action="exit-study">'+ICONS.back+'</button>'+
+      '<div><h1>پایان مرور</h1></div>'+
+    '</div>'+
+    '<div class="finish-wrap">'+
+      '<div class="badge">'+ICONS.trophy+'</div>'+
+      '<h2>آفرین! تمام شد</h2>'+
+      '<p>مرور دسته‌ی «'+escapeHtml(d?d.name:'')+'» به پایان رسید.</p>'+
+      '<div class="finish-stats">'+
+        '<div class="stat good"><b>'+(s?s.correct:0)+'</b><span>بلدم</span></div>'+
+        '<div class="stat bad"><b>'+(s?s.wrong:0)+'</b><span>بلد نیستم</span></div>'+
+      '</div>'+
+      '<div class="sheet-actions">'+
+        '<button class="btn btn-secondary btn-block" data-action="exit-study">بازگشت به دسته</button>'+
+        '<button class="btn btn-primary btn-block" data-action="restart-study">مرور دوباره</button>'+
+      '</div>'+
+    '</div>';
+  }
+
+  /* ================= AUDIO REVIEW (auto + manual) ================= */
+  function renderAutoStudy(){
+    var s = state.autoplay;
+    if(!s || s.index >= s.queue.length){
+      state.view='autofinish';
+      return renderAutoFinish();
+    }
+    var card = s.queue[s.index];
+    var pct = Math.round(s.index/s.queue.length*100);
+    var isAuto = s.mode==='auto';
+
+    var controlsHtml = '';
+    if(isAuto){
+      controlsHtml =
+        '<div class="auto-controls">'+
+          '<button class="btn btn-secondary" data-action="auto-skip">'+ICONS.skip+' رد کردن</button>'+
+          '<button class="btn btn-primary" data-action="auto-toggle-pause">'+(s.paused?ICONS.play+' ادامه':ICONS.pause+' مکث')+'</button>'+
+        '</div>';
+    } else {
+      controlsHtml =
+        '<div class="auto-controls">'+
+          '<button class="btn btn-secondary" '+(s.index===0?'disabled':'')+' data-action="manual-prev">'+ICONS.back+' قبلی</button>'+
+          '<button class="btn btn-secondary" data-action="manual-replay">'+ICONS.speaker+' پخش دوباره</button>'+
+          '<button class="btn btn-primary" data-action="manual-next">بعدی '+ICONS.skip+'</button>'+
+        '</div>';
+    }
+
+    var speakerBusy = s.speaking && !s.paused;
+
+    return ''+
+    '<div class="topbar">'+
+      '<button class="backbtn" data-action="exit-autostudy">'+ICONS.back+'</button>'+
+      '<div style="flex:1"><h1>مرور صوتی</h1><div class="sub">'+escapeHtml(findDeck(state.currentDeckId).name)+'</div></div>'+
+      '<button class="editbtn" data-action="toggle-mute" title="'+(audioMuted?'فعال کردن صدا':'قطع صدا')+'">'+(audioMuted?ICONS.speakerMute:ICONS.speaker)+'</button>'+
+    '</div>'+
+    '<div class="study-wrap">'+
+      '<div class="rate-toggle">'+
+        '<button class="'+(isAuto?'active':'')+'" data-action="auto-mode-auto">خودکار</button>'+
+        '<button class="'+(!isAuto?'active':'')+'" data-action="auto-mode-manual">دستی</button>'+
+      '</div>'+
+      '<div class="study-progress" style="margin-top:14px">'+
+        '<div class="bar"><div style="width:'+pct+'%"></div></div>'+
+        '<span>'+s.index+' / '+s.queue.length+'</span>'+
+      '</div>'+
+      '<div class="stage">'+
+        '<div class="ghost-card g2"></div>'+
+        '<div class="ghost-card g1"></div>'+
+        '<div class="flip-card '+(s.flipped?'flipped':'')+'"'+(isAuto?'':' data-action="flip-audio-card"')+'>'+
+          '<div class="flip-inner">'+
+            '<div class="face front">'+
+              '<div class="ring-holes"><span></span><span></span><span></span><span></span><span></span></div>'+
+              (speakerBusy ? '<div class="spk speaking">'+ICONS.speaker+'</div>' : '')+
+              '<div class="word en">'+escapeHtml(card.en)+'</div>'+
+              '<div class="tap-hint">'+(isAuto ? (s.paused?'مکث شده':'در حال خواندن…') : 'برای دیدن معنی لمس کن')+'</div>'+
+            '</div>'+
+            '<div class="face back">'+
+              '<div class="ring-holes"><span></span><span></span><span></span><span></span><span></span></div>'+
+              '<div class="word">'+escapeHtml(card.fa)+'</div>'+
+              '<div class="tap-hint">'+(isAuto ? 'به کلمه‌ی بعد می‌رویم…' : 'برای برگشت به انگلیسی دوباره لمس کن')+'</div>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      controlsHtml+
+      (isAuto
+        ? '<p class="study-hint">هر کلمه خوانده می‌شود، پشت کارت (معنی) نشان داده می‌شود و بعد از حدود ۲ ثانیه به کلمه‌ی بعد می‌رود.</p>'
+        : '<p class="study-hint">کارت را لمس کن تا معنی پشت آن را ببینی؛ با دکمه‌ی «بعدی» برو سراغ کلمه‌ی دیگر.</p>'
+      )+
+    '</div>';
+  }
+
+  function renderAutoFinish(){
+    var d = findDeck(state.currentDeckId);
+    return ''+
+    '<div class="topbar">'+
+      '<button class="backbtn" data-action="exit-autostudy">'+ICONS.back+'</button>'+
+      '<div><h1>پایان مرور صوتی</h1></div>'+
+    '</div>'+
+    '<div class="finish-wrap">'+
+      '<div class="badge">'+ICONS.trophy+'</div>'+
+      '<h2>تمام شد!</h2>'+
+      '<p>مرور صوتی دسته‌ی «'+escapeHtml(d?d.name:'')+'» تا آخرین کلمه تمام شد.</p>'+
+      '<div class="sheet-actions">'+
+        '<button class="btn btn-secondary btn-block" data-action="exit-autostudy">بازگشت به دسته</button>'+
+        '<button class="btn btn-primary btn-block" data-action="autostudy-restart">دوباره از اول</button>'+
+      '</div>'+
+    '</div>';
+  }
+
+  /* ---------------- helpers ---------------- */
+  function escapeHtml(s){
+    return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+    });
+  }
+  function escapeAttr(s){ return escapeHtml(s); }
+
+  function openOverlay(id){
+    document.querySelectorAll('.overlay').forEach(function(o){o.classList.remove('show');});
+    var el = document.getElementById(id);
+    if(el) el.classList.add('show');
+  }
+  function closeOverlays(){
+    document.querySelectorAll('.overlay').forEach(function(o){o.classList.remove('show');});
+  }
+
+  /* ---------------- Excel parsing ---------------- */
+  var PERSIAN_RE = /[\u0600-\u06FF]/;
+  var LATIN_RE = /[A-Za-z]/;
+
+  function parseWorkbookFile(file, cb){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      try{
+        var data = new Uint8Array(e.target.result);
+        var wb = XLSX.read(data, {type:'array'});
+        cb(null, wb);
+      }catch(err){
+        cb(err, null);
+      }
+    };
+    reader.onerror = function(){ cb(new Error('read failed'), null); };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function extractCardsFromSheet(sheet){
+    var rows = XLSX.utils.sheet_to_json(sheet, {header:1, defval:''});
+    var cards = [];
+    rows.forEach(function(row){
+      if(!row || !row.length) return;
+      var cells = row.map(function(c){ return String(c==null?'':c).trim(); })
+                      .filter(function(c){ return c.length>0; });
+      cells = cells.filter(function(c){ return !/^\d+[.)]?$/.test(c); });
+      if(cells.length < 2) return;
+      var en=null, fa=null;
+      for(var i=0;i<cells.length;i++){
+        var c = cells[i];
+        if(PERSIAN_RE.test(c) && !fa){ fa = c; }
+        else if(!PERSIAN_RE.test(c) && LATIN_RE.test(c) && !en){ en = c; }
+      }
+      if(en && fa){
+        cards.push({id: uid(), en: en, fa: fa, known:false});
+      }
+    });
+    return cards;
+  }
+
+  function handleImportFile(file){
+    var statusEl = document.getElementById('import-status');
+    if(statusEl) statusEl.innerHTML = '<p class="hint">در حال خواندن فایل…</p>';
+    parseWorkbookFile(file, function(err, wb){
+      if(err || !wb){
+        if(statusEl) statusEl.innerHTML = '<p class="hint" style="color:var(--bad)">خواندن فایل با مشکل مواجه شد. لطفاً فایل xlsx/xls/csv معتبر انتخاب کنید.</p>';
+        return;
+      }
+      var names = wb.SheetNames;
+      var counts = names.map(function(n){
+        return extractCardsFromSheet(wb.Sheets[n]).length;
+      });
+      var validIdx = [];
+      names.forEach(function(n,i){ if(counts[i]>0) validIdx.push(i); });
+      if(validIdx.length===0){
+        if(statusEl) statusEl.innerHTML = '<p class="hint" style="color:var(--bad)">هیچ ردیف قابل‌تشخیصی (انگلیسی + فارسی) پیدا نشد.</p>';
+        pendingImport = null;
+      } else {
+        pendingImport = {
+          workbook: wb,
+          sheetNames: validIdx.map(function(i){return names[i];}),
+          sheetIdx: validIdx,
+          counts: validIdx.map(function(i){return counts[i];}),
+          excluded: []
+        };
+        if(statusEl) statusEl.innerHTML = '<div class="import-summary">'+pendingImport.sheetNames.length+' برگه پیدا شد.</div>';
+      }
+      render();
+      openOverlay('overlay-import');
+    });
+  }
+
+  async function confirmImport(){
+    if(!pendingImport) return;
+    var folderSelect = document.getElementById('import-folder-select');
+    if(folderSelect) importFolderTarget = folderSelect.value || null;
+
+    var createdCount = 0;
+    var excluded = pendingImport.excluded || [];
+    pendingImport.sheetNames.forEach(function(name, idx){
+      if(excluded.indexOf(idx) !== -1) return;
+      var realIdx = pendingImport.sheetIdx[idx];
+      var sheet = pendingImport.workbook.Sheets[pendingImport.workbook.SheetNames[realIdx]];
+      var cards = extractCardsFromSheet(sheet);
+      if(cards.length===0) return;
+      if(importMergeDeckTarget){
+        var d = findDeck(importMergeDeckTarget);
+        if(d){ d.cards = d.cards.concat(cards); createdCount++; }
+      } else {
+        state.decks.push({
+          id: uid(),
+          name: name,
+          folderId: importFolderTarget || null,
+          color: PALETTE[state.decks.length % PALETTE.length],
+          createdAt: Date.now(),
+          cards: cards
+        });
+        createdCount++;
+      }
+    });
+    await persist();
+    var wasMergeToDeck = !!importMergeDeckTarget;
+    var wasFolder = importFolderTarget;
+    pendingImport = null;
+    importMergeDeckTarget = null;
+    importFolderTarget = null;
+    closeOverlays();
+    if(!wasMergeToDeck && wasFolder){ state.view='folder'; state.currentFolderId = wasFolder; }
+    else if(!wasMergeToDeck && !wasFolder){ state.view='home'; }
+    render();
+    showToast('وارد کردن انجام شد ✓');
+  }
+
+  /* ---------------- backup export / import ---------------- */
+  function exportBackup(){
+    var payload = JSON.stringify({folders: state.folders, decks: state.decks, exportedAt: Date.now()}, null, 2);
+    var blob = new Blob([payload], {type:'application/json'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var stamp = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = 'flashcards-backup-'+stamp+'.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    showToast('فایل پشتیبان دانلود شد ✓');
+  }
+
+  function handleBackupFile(file){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      applyParsedBackupText(e.target.result);
+    };
+    reader.onerror = function(){ showToast('خواندن فایل با مشکل مواجه شد'); };
+    reader.readAsText(file);
+  }
+
+  function applyParsedBackupText(text){
+    try{
+      var cleaned = String(text||'').replace(/^\uFEFF/, '').trim();
+      var parsed = JSON.parse(cleaned);
+      if(!parsed || (!Array.isArray(parsed.folders) && !Array.isArray(parsed.decks))){
+        showToast('این متن، فرمت فایل پشتیبان معتبری ندارد');
+        return;
+      }
+      pendingBackup = {folders: parsed.folders || [], decks: parsed.decks || []};
+      render();
+      openOverlay('overlay-backup');
+    }catch(err){
+      showToast('متن وارد شده معتبر نیست (JSON خراب است)');
+    }
+  }
+
+  async function applyBackup(mode){
+    if(!pendingBackup) return;
+    if(mode==='replace'){
+      state.folders = pendingBackup.folders;
+      state.decks = pendingBackup.decks;
+    } else {
+      state.folders = state.folders.concat(pendingBackup.folders);
+      state.decks = state.decks.concat(pendingBackup.decks);
+    }
+    await persist();
+    pendingBackup = null;
+    closeOverlays();
+    state.view = 'home';
+    render();
+    showToast('اطلاعات وارد شد ✓');
+  }
+
+  /* ---------------- events ---------------- */
+  function bindEvents(){
+    document.querySelectorAll('[data-open-deck]').forEach(function(el){
+      el.addEventListener('click', function(){
+        state.currentDeckId = el.getAttribute('data-open-deck');
+        state.view='deck';
+        render();
+      });
+    });
+    document.querySelectorAll('[data-open-folder]').forEach(function(el){
+      el.addEventListener('click', function(){
+        state.currentFolderId = el.getAttribute('data-open-folder');
+        state.view='folder';
+        render();
+      });
+    });
+
+    document.querySelectorAll('[data-action]').forEach(function(el){
+      el.addEventListener('click', function(ev){
+        var action = el.getAttribute('data-action');
+        handleAction(action, el, ev);
+      });
+    });
+
+    document.querySelectorAll('[data-edit-card]').forEach(function(el){
+      el.addEventListener('click', function(){
+        state.editingCard = {deckId: state.currentDeckId, cardId: el.getAttribute('data-edit-card')};
+        render();
+        openOverlay('overlay-card');
+      });
+    });
+    document.querySelectorAll('[data-del-card]').forEach(function(el){
+      el.addEventListener('click', function(){
+        var d = findDeck(state.currentDeckId);
+        var cardId = el.getAttribute('data-del-card');
+        if(confirm('این کلمه حذف شود؟')){
+          d.cards = d.cards.filter(function(c){return c.id!==cardId;});
+          persist();
+          render();
+        }
+      });
+    });
+
+    var fileInput = document.getElementById('import-file-input');
+    if(fileInput){
+      fileInput.addEventListener('change', function(){
+        if(fileInput.files && fileInput.files[0]){
+          handleImportFile(fileInput.files[0]);
+        }
+      });
+    }
+
+    var backupInput = document.getElementById('backup-file-input');
+    if(backupInput){
+      backupInput.addEventListener('change', function(){
+        if(backupInput.files && backupInput.files[0]){
+          handleBackupFile(backupInput.files[0]);
+        }
+      });
+    }
+
+    document.querySelectorAll('[data-import-sheet]').forEach(function(el){
+      el.addEventListener('click', function(){
+        el.classList.toggle('active');
+        var idx = parseInt(el.getAttribute('data-import-sheet'),10);
+        pendingImport.excluded = pendingImport.excluded || [];
+        if(!el.classList.contains('active')){
+          if(pendingImport.excluded.indexOf(idx)===-1) pendingImport.excluded.push(idx);
+        } else {
+          pendingImport.excluded = pendingImport.excluded.filter(function(i){return i!==idx;});
+        }
+      });
+    });
+  }
+
+  function handleAction(action, el){
+    if(action==='go-home'){ state.view='home'; render(); return; }
+    if(action==='go-folder'){
+      var fid = el.getAttribute('data-folderid');
+      if(fid){ state.currentFolderId = fid; state.view='folder'; } else { state.view='home'; }
+      render(); return;
+    }
+    if(action==='close-overlays'){ closeOverlays(); return; }
+
+    if(action==='quickadd-open'){ openOverlay('overlay-quickadd'); return; }
+
+    if(action==='newfolder-open'){ openOverlay('overlay-newfolder'); setTimeout(function(){var i=document.getElementById('newfolder-name'); if(i)i.focus();},100); return; }
+    if(action==='newfolder-save'){
+      var fnameInput = document.getElementById('newfolder-name');
+      var fname = fnameInput ? fnameInput.value.trim() : '';
+      if(!fname){ showToast('یک نام برای پوشه وارد کن'); return; }
+      state.folders.push({id:uid(), name:fname, color: FOLDER_PALETTE[state.folders.length % FOLDER_PALETTE.length], createdAt:Date.now()});
+      persist();
+      closeOverlays();
+      render();
+      showToast('پوشه ساخته شد ✓');
+      return;
+    }
+    if(action==='folderedit-open'){ openOverlay('overlay-folderedit'); return; }
+    if(action==='folderedit-save'){
+      var folderId = el.getAttribute('data-folderid');
+      var nameInput = document.getElementById('folderedit-name');
+      var name = nameInput ? nameInput.value.trim() : '';
+      if(!name){ showToast('نام نمی‌تواند خالی باشد'); return; }
+      var f = findFolder(folderId);
+      if(f){ f.name = name; }
+      persist();
+      closeOverlays();
+      render();
+      showToast('ذخیره شد ✓');
+      return;
+    }
+    if(action==='folder-delete'){
+      var delFolderId = el.getAttribute('data-folderid');
+      if(confirm('پوشه حذف شود؟ دسته‌های داخلش حذف نمی‌شوند و به «بدون پوشه» منتقل می‌شوند.')){
+        state.decks.forEach(function(d){ if(d.folderId===delFolderId) d.folderId=null; });
+        state.folders = state.folders.filter(function(f){return f.id!==delFolderId;});
+        persist();
+        state.view='home';
+        render();
+        showToast('پوشه حذف شد');
+      }
+      return;
+    }
+
+    if(action==='newdeck-open'){
+      newDeckFolderPreset = null;
+      closeOverlays();
+      render();
+      openOverlay('overlay-newdeck');
+      setTimeout(function(){var i=document.getElementById('newdeck-name'); if(i)i.focus();},100);
+      return;
+    }
+    if(action==='newdeck-open-infolder'){
+      newDeckFolderPreset = state.currentFolderId;
+      render();
+      openOverlay('overlay-newdeck');
+      setTimeout(function(){var i=document.getElementById('newdeck-name'); if(i)i.focus();},100);
+      return;
+    }
+    if(action==='newdeck-save'){
+      var nameInput2 = document.getElementById('newdeck-name');
+      var name2 = nameInput2 ? nameInput2.value.trim() : '';
+      var folderSelect2 = document.getElementById('newdeck-folder');
+      var folderVal = folderSelect2 ? (folderSelect2.value || null) : null;
+      if(!name2){ showToast('یک نام برای دسته وارد کن'); return; }
+      state.decks.push({id:uid(), name:name2, folderId:folderVal, color: PALETTE[state.decks.length % PALETTE.length], createdAt:Date.now(), cards:[]});
+      persist();
+      closeOverlays();
+      state.view = folderVal ? 'folder' : 'home';
+      if(folderVal) state.currentFolderId = folderVal;
+      render();
+      showToast('دسته ساخته شد ✓');
+      return;
+    }
+
+    if(action==='deckedit-open'){ openOverlay('overlay-deckedit'); return; }
+    if(action==='deckedit-save'){
+      var deckId2 = el.getAttribute('data-deckid');
+      var dnameInput = document.getElementById('deckedit-name');
+      var dname = dnameInput ? dnameInput.value.trim() : '';
+      var dfolderSelect = document.getElementById('deckedit-folder');
+      var dfolderVal = dfolderSelect ? (dfolderSelect.value || null) : null;
+      if(!dname){ showToast('نام نمی‌تواند خالی باشد'); return; }
+      var dd = findDeck(deckId2);
+      if(dd){ dd.name = dname; dd.folderId = dfolderVal; }
+      persist();
+      closeOverlays();
+      render();
+      showToast('ذخیره شد ✓');
+      return;
+    }
+    if(action==='deck-delete'){
+      var delDeckId = el.getAttribute('data-deckid');
+      if(confirm('این دسته و همه‌ی کلمات آن حذف شود؟')){
+        var wasFolderId = (findDeck(delDeckId)||{}).folderId;
+        state.decks = state.decks.filter(function(d){return d.id!==delDeckId;});
+        persist();
+        state.view = wasFolderId ? 'folder' : 'home';
+        state.currentFolderId = wasFolderId || state.currentFolderId;
+        render();
+        showToast('دسته حذف شد');
+      }
+      return;
+    }
+
+    if(action==='backup-open'){
+      pendingBackup = null;
+      closeOverlays();
+      render();
+      openOverlay('overlay-backup');
+      return;
+    }
+    if(action==='backup-export'){ exportBackup(); return; }
+    if(action==='backup-parse-paste'){
+      var pasteEl = document.getElementById('backup-paste-text');
+      var txt = pasteEl ? pasteEl.value : '';
+      if(!txt || !txt.trim()){ showToast('چیزی جای‌گذاری نشده'); return; }
+      applyParsedBackupText(txt);
+      return;
+    }
+    if(action==='backup-import-merge'){ applyBackup('merge'); return; }
+    if(action==='backup-import-replace'){
+      if(confirm('همه‌ی اطلاعات فعلی پاک و با فایل پشتیبان جایگزین شود؟')){
+        applyBackup('replace');
+      }
+      return;
+    }
+
+    if(action==='import-open'){ importMergeDeckTarget=null; importFolderTarget=null; pendingImport=null; render(); openOverlay('overlay-import'); return; }
+    if(action==='import-open-forfolder'){ importMergeDeckTarget=null; importFolderTarget=state.currentFolderId; pendingImport=null; render(); openOverlay('overlay-import'); return; }
+    if(action==='import-open-fordeck'){ importMergeDeckTarget=state.currentDeckId; importFolderTarget=null; pendingImport=null; render(); openOverlay('overlay-import'); return; }
+    if(action==='import-confirm'){ confirmImport(); return; }
+
+    if(action==='addcard-open'){
+      state.editingCard = {deckId: state.currentDeckId, cardId:null};
+      render();
+      openOverlay('overlay-card');
+      setTimeout(function(){var i=document.getElementById('card-en'); if(i)i.focus();},100);
+      return;
+    }
+    if(action==='card-save'){
+      var deckId = el.getAttribute('data-deckid');
+      var cardId = el.getAttribute('data-cardid');
+      var en = (document.getElementById('card-en')||{}).value || '';
+      var fa = (document.getElementById('card-fa')||{}).value || '';
+      en = en.trim(); fa = fa.trim();
+      if(!en || !fa){ showToast('هر دو فیلد را پر کن'); return; }
+      var d = findDeck(deckId);
+      if(cardId){
+        var c = d.cards.find(function(x){return x.id===cardId;});
+        if(c){ c.en = en; c.fa = fa; }
+      } else {
+        d.cards.push({id:uid(), en:en, fa:fa, known:false});
+      }
+      state.editingCard = null;
+      persist();
+      closeOverlays();
+      render();
+      showToast('ذخیره شد ✓');
+      return;
+    }
+
+    if(action==='start-study'){
+      var d3 = findDeck(state.currentDeckId);
+      if(!d3 || d3.cards.length===0) return;
+      var queue = shuffle(d3.cards.slice());
+      state.study = {queue:queue, index:0, flipped:false, correct:0, wrong:0};
+      state.view='study';
+      render();
+      return;
+    }
+    if(action==='restart-study'){
+      var d4 = findDeck(state.currentDeckId);
+      var queue2 = shuffle(d4.cards.slice());
+      state.study = {queue:queue2, index:0, flipped:false, correct:0, wrong:0};
+      state.view='study';
+      render();
+      return;
+    }
+    if(action==='exit-study'){
+      var backFolderId = (findDeck(state.currentDeckId)||{}).folderId;
+      state.study=null;
+      state.view='deck';
+      render();
+      return;
+    }
+    if(action==='flip-card'){ if(state.study){ state.study.flipped = !state.study.flipped; render(); } return; }
+    if(action==='rate-good'){ rateCurrent(true); return; }
+    if(action==='rate-bad'){ rateCurrent(false); return; }
+
+    if(action==='start-autostudy'){ startAudioReview(state.currentDeckId, 'auto'); return; }
+    if(action==='start-manualstudy'){ startAudioReview(state.currentDeckId, 'manual'); return; }
+    if(action==='exit-autostudy'){ exitAudioReview(); return; }
+    if(action==='toggle-mute'){
+      audioMuted = !audioMuted;
+      if(audioMuted && speechAvailable){
+        try{ window.speechSynthesis.cancel(); }catch(e){}
+      }
+      render();
+      return;
+    }
+    if(action==='autostudy-restart'){
+      var prevMode = (state.autoplay && state.autoplay.mode) || 'auto';
+      startAudioReview(state.currentDeckId, prevMode);
+      return;
+    }
+    if(action==='auto-mode-auto'){
+      var sA = state.autoplay;
+      if(sA && sA.mode!=='auto'){
+        sA.mode='auto'; sA.paused=false;
+        stopSpeechAndTimers();
+        speakAndScheduleAuto();
+      }
+      return;
+    }
+    if(action==='auto-mode-manual'){
+      var sM = state.autoplay;
+      if(sM && sM.mode!=='manual'){
+        sM.mode='manual';
+        stopSpeechAndTimers();
+        loadManualCard();
+      }
+      return;
+    }
+    if(action==='auto-toggle-pause'){
+      var sP = state.autoplay;
+      if(!sP) return;
+      sP.paused = !sP.paused;
+      if(sP.paused){
+        stopSpeechAndTimers();
+        render();
+      } else if(sP.flipped){
+        // speech already finished & meaning already revealed; just resume the countdown
+        render();
+        sP.advanceTimer = setTimeout(function(){
+          var c2 = state.autoplay;
+          if(!c2 || c2.paused) return;
+          advanceAutoCard();
+        }, 2000);
+      } else {
+        speakAndScheduleAuto();
+      }
+      return;
+    }
+    if(action==='auto-skip'){
+      var sS = state.autoplay;
+      if(!sS) return;
+      advanceAutoCard();
+      return;
+    }
+    if(action==='manual-next'){ manualGo(1); return; }
+    if(action==='manual-prev'){ manualGo(-1); return; }
+    if(action==='manual-replay'){ speakCurrentOnce(); return; }
+    if(action==='flip-audio-card'){
+      var sF = state.autoplay;
+      if(sF && sF.mode==='manual'){ sF.flipped = !sF.flipped; render(); }
+      return;
+    }
+  }
+
+  function rateCurrent(good){
+    var s = state.study;
+    if(!s) return;
+    var card = s.queue[s.index];
+    card.known = good;
+    if(good) s.correct++; else { s.wrong++; s.queue.push(card); }
+    persist();
+    s.index++;
+    s.flipped=false;
+    render();
+  }
+
+  function shuffle(arr){
+    for(var i=arr.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var t=arr[i]; arr[i]=arr[j]; arr[j]=t;
+    }
+    return arr;
+  }
+
+  /* ---------------- audio review (auto + manual) ---------------- */
+  var speechAvailable = typeof window.speechSynthesis !== 'undefined';
+  var audioMuted = false;
+
+  function stopSpeechAndTimers(){
+    if(speechAvailable){
+      try{ window.speechSynthesis.cancel(); }catch(e){}
+    }
+    var s = state.autoplay;
+    if(s){
+      if(s.advanceTimer){ clearTimeout(s.advanceTimer); s.advanceTimer=null; }
+      if(s.safetyTimer){ clearTimeout(s.safetyTimer); s.safetyTimer=null; }
+      s.speaking = false;
+    }
+  }
+
+  function startAudioReview(deckId, mode){
+    var d = findDeck(deckId);
+    if(!d || d.cards.length===0) return;
+    state.autoplay = {
+      queue: d.cards.slice(),
+      index: 0,
+      mode: mode,
+      paused: false,
+      speaking: false,
+      flipped: false,
+      rate: 0.95,
+      advanceTimer: null,
+      safetyTimer: null
+    };
+    state.view = 'autoplay';
+    render();
+    if(mode==='auto'){ speakAndScheduleAuto(); }
+    else { loadManualCard(); }
+  }
+
+  function speakOne(text, onDone){
+    var s = state.autoplay;
+    if(!speechAvailable || audioMuted){ setTimeout(onDone, 400); return; }
+    try{
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US';
+      u.rate = (s && s.rate) || 0.95;
+      var done = false;
+      var finish = function(){ if(done) return; done=true; onDone(); };
+      u.onend = finish;
+      u.onerror = finish;
+      window.speechSynthesis.speak(u);
+      // safety net in case onend never fires on some browsers/webviews
+      setTimeout(function(){ finish(); }, 9000);
+    }catch(e){
+      onDone();
+    }
+  }
+
+  function speakAndScheduleAuto(){
+    var s = state.autoplay;
+    if(!s || s.mode!=='auto' || s.paused) return;
+    var card = s.queue[s.index];
+    s.flipped = false;
+    s.speaking = true;
+    render();
+    speakOne(card.en, function(){
+      var cur = state.autoplay;
+      if(!cur) return;
+      cur.speaking = false;
+      cur.flipped = true; // reveal the back (Persian meaning) once read aloud
+      render();
+      if(cur.paused) return;
+      cur.advanceTimer = setTimeout(function(){
+        var c2 = state.autoplay;
+        if(!c2 || c2.paused) return;
+        advanceAutoCard();
+      }, 2000);
+    });
+  }
+
+  function advanceAutoCard(){
+    var s = state.autoplay;
+    if(!s) return;
+    stopSpeechAndTimers();
+    s.index++;
+    if(s.index >= s.queue.length){
+      state.view = 'autofinish';
+      render();
+      return;
+    }
+    speakAndScheduleAuto();
+  }
+
+  function loadManualCard(){
+    var s = state.autoplay;
+    if(!s) return;
+    s.flipped = false;
+    speakCurrentOnce();
+  }
+
+  function speakCurrentOnce(){
+    var s = state.autoplay;
+    if(!s) return;
+    stopSpeechAndTimers();
+    var card = s.queue[s.index];
+    s.speaking = true;
+    render();
+    speakOne(card.en, function(){
+      var cur = state.autoplay;
+      if(!cur) return;
+      cur.speaking = false;
+      render();
+    });
+  }
+
+  function manualGo(delta){
+    var s = state.autoplay;
+    if(!s) return;
+    stopSpeechAndTimers();
+    var next = s.index + delta;
+    if(next < 0) next = 0;
+    if(next >= s.queue.length){
+      state.view = 'autofinish';
+      render();
+      return;
+    }
+    s.index = next;
+    loadManualCard();
+  }
+
+  function exitAudioReview(){
+    stopSpeechAndTimers();
+    state.autoplay = null;
+    state.view = 'deck';
+    render();
+  }
+
+  /* ---------------- init ---------------- */
+  loadState();
+})();
+</script>
+</body>
+</html>
