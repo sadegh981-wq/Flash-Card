@@ -1031,7 +1031,7 @@
       '</div>'+
       controlsHtml+
       (isAuto
-        ? '<p class="study-hint">هر کلمه خوانده می‌شود، پشت کارت (معنی) نشان داده می‌شود و بعد از حدود ۲ ثانیه به کلمه‌ی بعد می‌رود.</p>'
+        ? '<p class="study-hint">ابتدا کلمه خوانده می‌شود، سپس معنی فارسی نشان داده شده و پس از ۲ ثانیه مکث به کلمه‌ی بعد می‌رویم.</p>'
         : '<p class="study-hint">کارت را لمس کن تا معنی پشت آن را ببینی؛ با دکمه‌ی «بعدی» برو سراغ کلمه‌ی دیگر.</p>'
       )+
     '</div>';
@@ -1631,7 +1631,7 @@
       paused: false,
       speaking: false,
       flipped: false,
-      rate: 0.95,
+      rate: 0.85, // سرعت تلفظ کمی آرام‌تر شد تا کلمات واضح‌تر شنیده شوند
       advanceTimer: null,
       safetyTimer: null
     };
@@ -1643,12 +1643,12 @@
 
   function speakOne(text, onDone){
     var s = state.autoplay;
-    if(!speechAvailable || audioMuted){ setTimeout(onDone, 400); return; }
+    if(!speechAvailable || audioMuted){ setTimeout(onDone, 600); return; }
     try{
       window.speechSynthesis.cancel();
       var u = new SpeechSynthesisUtterance(text);
       u.lang = 'en-US';
-      u.rate = (s && s.rate) || 0.95;
+      u.rate = (s && s.rate) || 0.85; // سرعت تلفظ مناسب و استاندارد
       var done = false;
       var finish = function(){ if(done) return; done=true; onDone(); };
       u.onend = finish;
@@ -1668,13 +1668,16 @@
     s.flipped = false;
     s.speaking = true;
     render();
+    
+    // ابتدا بخش انگلیسی کاملاً تلفظ می‌شود
     speakOne(card.en, function(){
       var cur = state.autoplay;
-      if(!cur) return;
+      if(!cur || cur.paused) return;
       cur.speaking = false;
-      cur.flipped = true; // reveal the back (Persian meaning) once read aloud
+      cur.flipped = true; // بعد از تمام شدن تلفظ، پشت کارت (معنی فارسی) نشان داده می‌شود
       render();
-      if(cur.paused) return;
+      
+      // 정확اً ۲ ثانیه بعد از نمایش معنی فارسی، به کارت بعدی می‌رویم
       cur.advanceTimer = setTimeout(function(){
         var c2 = state.autoplay;
         if(!c2 || c2.paused) return;
