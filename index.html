@@ -410,26 +410,22 @@
 (function(){
   "use strict";
 
-  /* ---------------- storage layer with graceful fallback ---------------- */
-  var memoryStore = {};
-  var hasWindowStorage = typeof window.storage !== 'undefined' && window.storage;
-
+  /* ---------------- storage layer with persistent localStorage ---------------- */
   async function storageGet(key){
-    if(hasWindowStorage){
-      try{
-        var res = await window.storage.get(key, false);
-        return res ? res.value : null;
-      }catch(e){ return null; }
-    }
-    return memoryStore[key] !== undefined ? memoryStore[key] : null;
+    try{
+      var val = localStorage.getItem(key);
+      return val ? JSON.parse(val) : null;
+    }catch(e){ return null; }
   }
+  
   async function storageSet(key, value){
-    if(hasWindowStorage){
-      try{ await window.storage.set(key, value, false); return true; }
-      catch(e){ console.error('storage set failed', e); return false; }
+    try{
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    }catch(e){ 
+      console.error('storage set failed', e); 
+      return false; 
     }
-    memoryStore[key] = value;
-    return true;
   }
 
   /* ---------------- state ---------------- */
@@ -456,7 +452,7 @@
     var raw = await storageGet('flashcard_data_v2');
     if(raw){
       try{
-        var parsed = JSON.parse(raw);
+        var parsed = raw; // Since storageGet already parses JSON via localStorage
         state.folders = parsed.folders || [];
         state.decks = parsed.decks || [];
       }catch(e){ state.folders=[]; state.decks=[]; }
@@ -464,7 +460,7 @@
       // try migrating from older flat version
       var oldRaw = await storageGet('flashcard_decks_v1');
       if(oldRaw){
-        try{ state.decks = JSON.parse(oldRaw); state.decks.forEach(function(d){d.folderId=null;}); }
+        try{ state.decks = oldRaw; state.decks.forEach(function(d){d.folderId=null;}); }
         catch(e){ state.decks = []; }
         state.folders = [];
       } else {
@@ -484,7 +480,7 @@
   }
 
   async function persist(){
-    await storageSet('flashcard_data_v2', JSON.stringify({folders: state.folders, decks: state.decks}));
+    await storageSet('flashcard_data_v2', {folders: state.folders, decks: state.decks});
   }
 
   /* ---------------- toast ---------------- */
